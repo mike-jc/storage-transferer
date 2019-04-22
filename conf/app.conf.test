@@ -1,0 +1,38 @@
+appname = service-recordingStorage
+httpport = 8094
+httpaddr =
+runmode = test
+autorender = false
+copyrequestbody = true
+EnableDocs = true
+EnableHTTP = true
+EnableHTTPS = false
+
+logger.serviceId = recordingStorage
+logger.serverId = 1
+logger.env = test
+logger.writeLevel = 3
+logger.stdoutLevel = 7
+logger.engine = dummy
+
+configurator.url = http://localhost:8087
+
+aws.region = eu-west-1
+
+workers.FileTransferer.count = 5
+workers.FileTransferer.reportLevel = 3
+workers.FileTransferer.queue = recordings-transferring
+workers.FileTransferer.source.type = s3
+workers.FileTransferer.destination.type = dracoon
+
+workers.DracoonGlobalSharer.count = 1
+workers.DracoonGlobalSharer.jobDelayMinutes = 10
+
+s3.chunkSize = 20971520
+s3.removeAfterTransferring = true
+
+dracoon.test.baseUrl = https://dracoon.team/api/v4
+dracoon.test.login = ****
+dracoon.test.password = ****
+dracoon.test.encryptionPassword = ****
+dracoon.test.parentRoomId = 12345

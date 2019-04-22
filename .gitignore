@@ -1,0 +1,10 @@
+.idea
+vendor
+conf/app.conf
+conf/pubsub/sqs.yml
+conf/pubsub/sqs/topics.yml
+tests/conf/app.conf
+tests/conf/pubsub/sqs.yml
+tests/conf/pubsub/sqs/topics.yml
+lastupdate.tmp
+Gopkg.lock

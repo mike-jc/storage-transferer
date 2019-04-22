@@ -1,0 +1,44 @@
+stages:
+  - test
+  - build
+  - deploy
+
+services:
+  - docker:dind
+
+variables:
+  IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+
+test:
+  stage: test
+  image: golang
+  before_script:
+    - ln -s "$(pwd)" $GOPATH/src/service-recordingStorage
+    - cd $GOPATH/src/service-recordingStorage
+    - mkdir -p ~/.ssh
+    - echo -e "$GITLAB_SSH_KEY" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - mkdir -p ~/.aws
+    - echo -e "[default]\nregion=eu-west-1\naws_access_key_id=${AWS_KEY}\naws_secret_access_key=${AWS_SECRET}" > /root/.aws/credentials
+    - chmod 600 ~/.aws/credentials
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+  script:
+    - apt-get update
+    - apt-get install -y libssl-dev
+    - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+    - mkdir tests/conf
+    - cp conf/app.conf.test tests/conf/app.conf
+    - mkdir -p tests/conf/pubsub/sqs
+    - cp conf/pubsub/sqs/topics.yml.test tests/conf/pubsub/sqs/topics.yml
+    - dep ensure
+    - go install -v
+    - go test -v ./tests/...
+
+build:
+  image: docker:latest
+  stage: build
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+  script:
+    - docker build --build-arg CI_BUILD_REF_NAME=$CI_BUILD_REF_NAME -t $IMAGE_TAG .
+    - docker push $IMAGE_TAG
